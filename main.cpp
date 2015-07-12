@@ -11,6 +11,9 @@
 #include <sys/time.h>
 #include <memory.h>
 
+#include "WorkerThread.hpp"
+#include <iostream>
+
 unsigned magicSum;
 unsigned square;
 unsigned limit;
@@ -43,18 +46,24 @@ unsigned isInMainDiag(unsigned, unsigned);
 
 int main(void)
 {
-    init ();
+//    init ();
 
     measureTime(&tStart);
 
-    createMainDiag(0, 0);
+//    createMainDiag(0, 0);
+    WorkerThread<4> w(0, 4);
+    std::thread t([](WorkerThread<4> thre){
+        thre.solve();
+    }, w);
+    t.join();
 
     measureTime(&tStop);
     timeDiff = (unsigned long)((tStop - tStart)) / MILI;
     writeNrOfResults();
 
-    free (usedNumbers);
-    fclose(out);
+    std::cout << w.numberOfSolutions() << std::endl;
+//    free (usedNumbers);
+//    fclose(out);
     return 0;
 }
 

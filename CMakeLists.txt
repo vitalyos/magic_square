@@ -1,0 +1,5 @@
+project (magic_square)
+cmake_minimum_required (VERSION 2.8)
+
+add_definitions (-std=c++11 -Wall -Ofast)
+add_executable(run main.cpp)

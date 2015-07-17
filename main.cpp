@@ -1,20 +1,48 @@
-
 #include "WorkerThread.hpp"
-#include <iostream>
 
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <chrono>
+#include <list>
+
+constexpr int dim = 4;
+
+#define MULTI
+
+#ifdef MULTI
+constexpr int threadCount = 6;
+std::list<int> bounds = {3, 6, 8, 10, 13, 16};
+#else
+constexpr int threadCount = 1;
+std::list<int> bounds = {16};
+#endif // MULTI
 int main(void)
 {
-    measureTime(&tStart);
-    WorkerThread<4> w(0, 4);
-    std::thread t([](WorkerThread<4> thre){
-        thre.solve();
-    }, w);
-    t.join();
+    std::vector<WorkerThread<dim>> workers;
+    int prev = 0;
+    for (const auto & bound : bounds)
+    {
+        workers.push_back(WorkerThread<dim>(prev, bound));
+        prev = bound;
+    }
 
-    measureTime(&tStop);
-    timeDiff = (unsigned long)((tStop - tStart)) / MILI;
-    writeNrOfResults();
+    auto start = std::chrono::steady_clock::now();
 
-    std::cout << w.numberOfSolutions() << std::endl;
+    std::vector<std::thread> threads;
+    for (auto & worker : workers)
+    {
+        threads.push_back(WorkerThread<dim>::work(worker));
+    }
+
+    for (auto & thread : threads)
+    {
+        thread.join ();
+    }
+
+    auto end = std::chrono::steady_clock::now();
+
+
+    std::cout << "duration: " << std::chrono::duration<double, std::milli> (end - start).count () << "ms" << std::endl;
     return 0;
 }

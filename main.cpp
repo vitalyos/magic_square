@@ -8,8 +8,6 @@
 
 constexpr int dim = 4;
 
-#define MULTI
-
 #ifdef MULTI
 constexpr int threadCount = 6;
 std::list<int> bounds = {3, 6, 8, 10, 13, 16};
@@ -42,7 +40,14 @@ int main(void)
 
     auto end = std::chrono::steady_clock::now();
 
+    int nr_solutions = 0;
+    for (const auto & worker : workers)
+    {
+        nr_solutions += worker.numberOfSolutions ();
+    }
+
 
     std::cout << "duration: " << std::chrono::duration<double, std::milli> (end - start).count () << "ms" << std::endl;
+    std::cout << "solutions: " << nr_solutions << std::endl;
     return 0;
 }

@@ -12,12 +12,13 @@ public:
     WorkerThread(unsigned from, unsigned to);
     unsigned numberOfSolutions() const;
     void solve ();
-    static std::thread work (WorkerThread<dimension> worker);
+    static std::thread work (WorkerThread<dimension> *worker);
 
 private:
     static constexpr unsigned s_square = dimension * dimension;
     static constexpr unsigned s_magicSum = (dimension * (s_square + 1)) >> 1;
-    static constexpr unsigned s_limit = s_square - dimension - 1;
+    static constexpr unsigned s_limit = dimension - 1;
+    static constexpr unsigned s_diag_limit = dimension - 2;
 
     unsigned m_numberOfSolutions;
     unsigned m_content[dimension][dimension];
@@ -42,7 +43,7 @@ WorkerThread<dimension>::WorkerThread(unsigned from, unsigned to)
       m_sourceRange (from),
       m_destRange (to)
 {
-    memset(m_usedNumbers, false, (s_square + 1) * sizeof (bool));
+    memset(m_usedNumbers, false, (s_square) * sizeof (bool));
     for (unsigned i = 0; i < dimension; ++i)
     {
         memset(m_content[i], 0, dimension * sizeof (unsigned));
@@ -58,7 +59,7 @@ unsigned WorkerThread<dimension>::numberOfSolutions() const
 template <size_t dimension>
 void WorkerThread<dimension>::backtrack(unsigned row, unsigned column, unsigned sum)
 {
-    if (row == dimension - 1 && column == 0)
+    if (row == s_limit && column == 0)
     {
         lastDiag();
         return;
@@ -87,7 +88,7 @@ void WorkerThread<dimension>::backtrack(unsigned row, unsigned column, unsigned 
         m_content[row][column] = j + 1;
         m_usedNumbers[j] = true;
 
-        if (column == dimension - 1)
+        if (column == s_limit)
         {
             if (checkRow(row))
             {
@@ -138,7 +139,7 @@ bool WorkerThread<dimension>::checkSecDiag() const
 
     for (unsigned i = 0; i < dimension; ++i)
     {
-        sum += m_content[dimension - i -1][i];
+        sum += m_content[s_limit - i][i];
     }
 
     return sum == s_magicSum;
@@ -180,7 +181,7 @@ void WorkerThread<dimension>::lastDiag()
             continue;
         }
         m_usedNumbers[i] = true;
-        m_content[dimension -1][0] = i + 1;
+        m_content[s_limit][0] = i + 1;
         if (checkSecDiag() && checkColumn(0))
         {
             backtrackLastRow (1);
@@ -199,15 +200,15 @@ void WorkerThread<dimension>::backtrackLastRow(unsigned i)
             continue;
         }
         m_usedNumbers[j] = true;
-        m_content[dimension - 1][i] = j + 1;
+        m_content[s_limit][i] = j + 1;
         if (!checkColumn(i))
         {
             m_usedNumbers[j] = false;
             continue;
         }
-        if (i == dimension - 2)
+        if (i == s_diag_limit)
         {
-            if (checkRow(dimension - 1))
+            if (checkRow(s_limit))
             {
                 ++m_numberOfSolutions;
                 m_usedNumbers[j] = false;
@@ -240,7 +241,7 @@ void WorkerThread<dimension>::createMainDiag(unsigned i, unsigned sum)
         }
         m_usedNumbers[j] = true;
         m_content[i][i] = j + 1;
-        if (i == dimension - 1)
+        if (i == s_limit)
         {
             if (checkMainDiag())
             {
@@ -263,9 +264,9 @@ void WorkerThread<dimension>::createMainDiag(unsigned i, unsigned sum)
 }
 
 template <size_t dimension>
-std::thread WorkerThread<dimension>::work (WorkerThread<dimension> worker)
+std::thread WorkerThread<dimension>::work (WorkerThread<dimension> * worker)
 {
-    return std::move(std::thread([](WorkerThread<dimension> t){t.solve();}, worker));
+    return std::thread([](WorkerThread<dimension> * t){t->solve();}, worker);
 }
 
 #endif // WORKERTHREAD_HPP

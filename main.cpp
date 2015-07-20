@@ -9,8 +9,8 @@
 constexpr int dim = 4;
 
 #ifdef MULTI
-constexpr int threadCount = 6;
-std::list<int> bounds = {3, 6, 8, 10, 13, 16};
+constexpr int threadCount = 8;
+std::list<int> bounds = {2 ,4, 6, 8, 10, 12, 14, 16};
 #else
 constexpr int threadCount = 1;
 std::list<int> bounds = {16};
@@ -30,7 +30,7 @@ int main(void)
     std::vector<std::thread> threads;
     for (auto & worker : workers)
     {
-        threads.push_back(WorkerThread<dim>::work(worker));
+        threads.push_back(WorkerThread<dim>::work(&worker));
     }
 
     for (auto & thread : threads)
@@ -46,8 +46,8 @@ int main(void)
         nr_solutions += worker.numberOfSolutions ();
     }
 
-
-    std::cout << "duration: " << std::chrono::duration<double, std::milli> (end - start).count () << "ms" << std::endl;
+    auto duration = std::chrono::duration<double, std::milli> (end - start).count ();
+    std::cout << "duration: " << duration << " ms" << std::endl;
     std::cout << "solutions: " << nr_solutions << std::endl;
     return 0;
 }

@@ -66,8 +66,7 @@ void WorkerThread<dimension>::backtrack(unsigned row, unsigned column, unsigned 
 
     if (row == column)
     {
-        auto next = column + 1;
-        backtrack(row, next, sum + m_content[row][column]);
+        backtrack(row, column + 1, sum + m_content[row][column]);
         return;
     }
 
@@ -114,8 +113,9 @@ void WorkerThread<dimension>::solve()
             continue;
         }
         m_usedNumbers[root] = true;
-        m_content[0][0] = root + 1;
-        createMainDiag(1, root + 1);
+        const unsigned root_val = root + 1;
+        m_content[0][0] = root_val;
+        createMainDiag(1, root_val);
         m_usedNumbers[root] = false;
     }
 }
@@ -205,7 +205,7 @@ void WorkerThread<dimension>::backtrackLastRow(unsigned i)
             m_usedNumbers[j] = false;
             continue;
         }
-        if (dimension - 2 == i)
+        if (i == dimension - 2)
         {
             if (checkRow(dimension - 1))
             {
